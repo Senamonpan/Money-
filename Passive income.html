@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Finance Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2=family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
+        body { background-color: #f8fafc; margin: 0; padding: 0; color: #334155; line-height: 1.6; }
+        .container { max-width: 800px; margin: 30px auto; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); overflow: hidden; padding-bottom: 50px; }
+        
+        /* Header Banner & Clock */
+        .header-banner { padding: 30px 20px; background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; text-align: center; }
+        .header-banner h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 0.5px; }
+        .header-banner p { margin: 8px 0 0 0; font-size: 14px; opacity: 0.9; }
+        .live-clock { font-size: 20px; font-weight: 700; margin-top: 12px; background: rgba(255, 255, 255, 0.15); display: inline-block; padding: 2px 15px; border-radius: 30px; letter-spacing: 1px; }
+        
+        .content-padding { padding: 0 25px; }
+        
+        /* Dashboard สรุปยอดเงิน */
+        .dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 25px; }
+        .dash-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .dash-title { font-size: 13px; color: #64748b; font-weight: 600; }
+        .dash-value { font-size: 18px; font-weight: 700; margin-top: 5px; }
+        .text-income { color: #10b981; } /* สีเขียว */
+        .text-expense { color: #ef4444; } /* สีแดง */
+        .text-balance { color: #2563eb; } /* สีน้ำเงิน */
+
+        /* ฟอร์มบันทึกรายการ */
+        .creator-box { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-top: 25px; }
+        .creator-title { font-size: 15px; font-weight: 700; color: #1e3a8a; margin-top: 0; margin-bottom: 12px; }
+        
+        .form-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .form-grid-sub { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .input-text, .select-custom { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background-color: white; }
+        .input-text:focus, .select-custom:focus { outline: none; border-color: #2563eb; }
+        
+        /* ปุ่มกด */
+        .btn { border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; padding: 10px; font-size: 14px; }
+        .btn-primary { background: #2563eb; color: white; width: 100%; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-danger-sm { background: #fee2e2; color: #ef4444; padding: 2px 8px; font-size: 12px; border-radius: 4px; }
+        .btn-danger-sm:hover { background: #fca5a5; }
+
+        /* ส่วนแสดงประวัติธุรกรรม */
+        .section-title { font-size: 16px; color: #1e3a8a; border-left: 4px solid #2563eb; padding-left: 12px; margin-top: 35px; margin-bottom: 15px; font-weight: 700; }
+        .history-list { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+        
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #f1f5f9; }
+        .history-item:last-child { border-bottom: none; }
+        
+        .item-details { display: flex; flex-direction: column; }
+        .item-title { font-size: 15px; font-weight: 600; color: #1e293b; }
+        .item-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+        .category-tag { background: #e2e8f0; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #475569; }
+        
+        .item-right { display: flex; align-items: center; gap: 15px; }
+        .amount-text { font-size: 16px; font-weight: 700; }
+        .amount-income { color: #10b981; }
+        .amount-expense { color: #ef4444; }
+
+        /* ปรับแต่งหน้าจอมือถือ */
+        @media (max-width: 768px) {
+            .container { margin: 0; border-radius: 0; }
+            .content-padding { padding: 0 15px; }
+            .dashboard { grid-template-columns: 1fr; gap: 10px; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-banner">
+            <h1>My Personal Finance Tracker</h1>
+            <p>ระบบบันทึกรายรับ-รายจ่ายส่วนตัวอเนกประสงค์</p>
+            <div id="liveClock" class="live-clock">00:00:00</div>
+        </div>
+
+        <div class="content-padding">
+            
+            <div class="dashboard">
+                <div class="dash-card">
+                    <div class="dash-title">💰 รายรับรวมทั้งหมด</div>
+                    <div id="totalIncome" class="dash-value text-income">0.00 บาท</div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-title">💸 รายจ่ายรวมทั้งหมด</div>
+                    <div id="totalExpense" class="dash-value text-expense">0.00 บาท</div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-title">🏦 เงินคงเหลือสุทธิ</div>
+                    <div id="totalBalance" class="dash-value text-balance">0.00 บาท</div>
+                </div>
+            </div>
+
+            <div class="creator-box">
+                <div class="creator-title">📝 บันทึกรายการใหม่</div>
+                <div class="form-grid">
+                    <input type="text" id="transTitle" class="input-text" placeholder="ระบุชื่อรายการ เช่น เงินเดือน, ค่าข้าวเที่ยง, ซื้อหนังสือ">
+                    <input type="number" id="transAmount" class="input-text" placeholder="จำนวนเงิน (บาท)" step="0.01">
+                </div>
+                <div class="form-grid-sub">
+                    <select id="transType" class="select-custom">
+                        <option value="expense">💸 รายจ่าย (Expense)</option>
+                        <option value="income">💰 รายรับ (Income)</option>
+                    </select>
+                    <select id="transCategory" class="select-custom">
+                        <option value="อาหารและเครื่องดื่ม">🍔 อาหารและเครื่องดื่ม</option>
+                        <option value="เดินทาง/คมนาคม">🚗 การเดินทาง/ยานพาหนะ</option>
+                        <option value="การศึกษา/พัฒนาตนเอง">📚 การศึกษา/อุปกรณ์เรียน</option>
+                        <option value="ช้อปปิ้ง/สังสรรค์">🛍️ ช้อปปิ้ง/บันเทิง</option>
+                        <option value="รายได้/เงินสนับสนุน">💵 รายได้/เงินเดือน/โอนเข้า</option>
+                        <option value="อื่นๆ">🌀 อื่นๆ</option>
+                    </select>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button onclick="addTransaction()" class="btn btn-primary">➕ บันทึกข้อมูลลงบัญชี</button>
+                </div>
+            </div>
+
+            <div class="section-title">📊 ประวัติรายการเข้า-ออกทั้งหมด</div>
+            <div id="historyContainer" class="history-list"></div>
+
+        </div>
+    </div>
+
+    <script>
+        // โครงสร้างฐานข้อมูลรายรับรายจ่ายใน LocalStorage 
+        let FinanceData = JSON.parse(localStorage.getItem('my_personal_finance_data')) || [];
+
+        // ฟังก์ชันอัปเดตและสั่งวาดหน้าจอใหม่
+        function saveAndRefresh() {
+            localStorage.setItem('my_personal_finance_data', JSON.stringify(FinanceData));
+            calculateFinance();
+            renderHistory();
+        }
+
+        // ฟังก์ชันคำนวณแดชบอร์ดสรุปตัวเลขทางการเงินแบบเรียลไทม์
+        function calculateFinance() {
+            let totalIncome = 0;
+            let totalExpense = 0;
+
+            FinanceData.forEach(item => {
+                if (item.type === 'income') {
+                    totalIncome += item.amount;
+                } else if (item.type === 'expense') {
+                    totalExpense += item.amount;
+                }
+            });
+
+            let totalBalance = totalIncome - totalExpense;
+
+            document.getElementById('totalIncome').textContent = totalIncome.toFixed(2) + ' บาท';
+            document.getElementById('totalExpense').textContent = totalExpense.toFixed(2) + ' บาท';
+            document.getElementById('totalBalance').textContent = totalBalance.toFixed(2) + ' บาท';
+        }
+
+        // ฟังก์ชันกดบันทึกธุรกรรมใหม่
+        function addTransaction() {
+            const titleInput = document.getElementById('transTitle');
+            const amountInput = document.getElementById('transAmount');
+            const typeInput = document.getElementById('transType');
+            const catInput = document.getElementById('transCategory');
+
+            const title = titleInput.value.trim();
+            const amount = parseFloat(amountInput.value) || 0;
+            const type = typeInput.value;
+            const category = catInput.value;
+
+            if (title === '') { alert('กรุณาระบุชื่อรายการด้วยครับ'); return; }
+            if (amount <= 0) { alert('กรุณาระบุจำนวนเงินที่มากกว่า 0 บาทครับ'); return; }
+
+            // ดึงวันที่ปัจจุบัน
+            const today = new Date();
+            const dateString = today.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+
+            FinanceData.unshift({ // ใช้ unshift เพื่อให้รายการใหม่ล่าสุดไปอยู่บนสุด
+                id: 'trans_' + Date.now(),
+                title: title,
+                amount: amount,
+                type: type,
+                category: category,
+                date: dateString
+            });
+
+            saveAndRefresh();
+
+            // เคลียร์ค่าหลังจากบันทึกเสร็จ
+            titleInput.value = '';
+            amountInput.value = '';
+        }
+
+        // ฟังก์ชันลบรายการรายรับรายจ่ายออก
+        function deleteTransaction(id) {
+            if (confirm('คุณต้องการลบรายการบัญชีนี้ใช่หรือไม่?')) {
+                FinanceData = FinanceData.filter(item => item.id !== id);
+                saveAndRefresh();
+            }
+        }
+
+        // ฟังก์ชันวาดประวัติรายการลงบนหน้าจอ
+        function renderHistory() {
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = '';
+
+            if (FinanceData.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#94a3b8; padding:30px 0; font-size:14px; font-style:italic; margin:0;">บัญชีว่างเปล่าและสมบูรณ์แบบ<br>เริ่มกรอกรายรับ-รายจ่ายของคุณที่กล่องด้านบนได้เลยครับ</p>`;
+                return;
+            }
+
+            FinanceData.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'history-item';
+
+                const isIncome = item.type === 'income';
+                const sign = isIncome ? '+' : '-';
+                const amountClass = isIncome ? 'amount-income' : 'amount-expense';
+
+                itemDiv.innerHTML = `
+                    <div class="item-details">
+                        <span class="item-title">${item.title}</span>
+                        <div class="item-meta">
+                            <span class="category-tag">${item.category}</span>
+                            <span style="margin-left:8px;">📅 ${item.date}</span>
+                        </div>
+                    </div>
+                    <div class="item-right">
+                        <span class="amount-text ${amountClass}">${sign}${item.amount.toFixed(2)} บ.</span>
+                        <button onclick="deleteTransaction('${item.id}')" class="btn-danger-sm">✕</button>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        // ระบบนาฬิกา Real-time สุดสมาร์ท
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('liveClock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // สั่งรันคำสั่งเริ่มต้นทั้งหมดระบบทันทีเมื่อเปิดเว็บแอป
+        calculateFinance();
+        renderHistory();
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
